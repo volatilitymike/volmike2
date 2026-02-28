@@ -1330,31 +1330,45 @@ def build_chart(
 
 
 
-    # ==========================
-    # ⚡ PARALLEL PHASE RUN (after T2)
-    # ==========================
-    if "T2_Flag" in intraday.columns and "Parallel_End" in intraday.columns:
-        # Identify all bars where Parallel_Emoji == ⚡
-        par_mask = intraday.get("Parallel_Emoji", "") == "⚡"
+# ==========================
+# 🏁 / 🚩 PARALLEL PHASE (start + end flags)
+# ==========================
+if "Parallel_Emoji" in intraday.columns:
+    par_mask = intraday["Parallel_Emoji"] == "⚡"
+    if par_mask.any():
+        par_bars = intraday[par_mask]
+        first_par = par_bars.iloc[0]
+        last_par  = par_bars.iloc[-1]
 
-        if par_mask.any():
-            fig.add_trace(
-                go.Scatter(
-                    x=intraday.loc[par_mask, "Time"],
-                    y=intraday.loc[par_mask, "F_numeric"] + 5,   # small offset above Mike
-                    mode="text",
-                    text=["⚡"] * int(par_mask.sum()),
-                    textposition="middle center",
-                    textfont=dict(size=20, color="cyan"),
-                    name="Parallel Phase",
-                    hovertemplate=(
-                        "Time: %{x}<br>"
-                        "Parallel Phase ⚡<br>"
-                        "F%: %{y}<extra></extra>"
-                    ),
-                ),
-                row=1, col=1,
-            )
+        # 🏁 Start
+        fig.add_trace(
+            go.Scatter(
+                x=[first_par["Time"]],
+                y=[first_par["F_numeric"] + 20],
+                mode="text",
+                text=["🏁"],
+                textposition="middle center",
+                textfont=dict(size=20),
+                name="Parallel Start 🏁",
+                hovertemplate="🏁 Parallel Start<br>Time: %{x}<br>F%: %{y}<extra></extra>",
+            ),
+            row=1, col=1,
+        )
+
+        # 🚩 End
+        fig.add_trace(
+            go.Scatter(
+                x=[last_par["Time"]],
+                y=[last_par["F_numeric"] + 20],
+                mode="text",
+                text=["🚩"],
+                textposition="middle center",
+                textfont=dict(size=20),
+                name="Parallel End 🚩",
+                hovertemplate="🚩 Parallel End<br>Time: %{x}<br>F%: %{y}<extra></extra>",
+            ),
+            row=1, col=1,
+        )
 
     # ==========================
     # 💰 Goldmine from E1
