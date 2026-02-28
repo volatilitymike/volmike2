@@ -1328,9 +1328,7 @@ def build_chart(
                     col=1,
                 )
 
-
-
- # ==========================
+# ==========================
     # 🏁 / 🚩 PARALLEL PHASE (start + end flags)
     # ==========================
     if "Parallel_Emoji" in intraday.columns:
@@ -1338,9 +1336,8 @@ def build_chart(
         if par_mask.any():
             par_bars = intraday[par_mask]
             first_par = par_bars.iloc[0]
-            last_par  = par_bars.iloc[-1]
 
-            # 🏁 Start
+            # 🏁 Start — first bar inside the phase
             fig.add_trace(
                 go.Scatter(
                     x=[first_par["Time"]],
@@ -1355,20 +1352,25 @@ def build_chart(
                 row=1, col=1,
             )
 
-            # 🚩 End
-            fig.add_trace(
-                go.Scatter(
-                    x=[last_par["Time"]],
-                    y=[last_par["F_numeric"] + 20],
-                    mode="text",
-                    text=["🚩"],
-                    textposition="middle center",
-                    textfont=dict(size=20),
-                    name="Parallel End 🚩",
-                    hovertemplate="🚩 Parallel End<br>Time: %{x}<br>F%: %{y}<extra></extra>",
-                ),
-                row=1, col=1,
-            )
+            # 🚩 End — first bar AFTER the phase breaks (Mike crossed Tenkan)
+            last_par_loc = intraday.index.get_loc(par_bars.index[-1])
+            next_loc = last_par_loc + 1
+
+            if next_loc < len(intraday):
+                break_bar = intraday.iloc[next_loc]
+                fig.add_trace(
+                    go.Scatter(
+                        x=[break_bar["Time"]],
+                        y=[break_bar["F_numeric"] + 20],
+                        mode="text",
+                        text=["🚩"],
+                        textposition="middle center",
+                        textfont=dict(size=20),
+                        name="Parallel End 🚩",
+                        hovertemplate="🚩 Parallel Break<br>Time: %{x}<br>F%: %{y}<extra></extra>",
+                    ),
+                    row=1, col=1,
+                )
     # ==========================
     # 💰 Goldmine from E1
     # ==========================
